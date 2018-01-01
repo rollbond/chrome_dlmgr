@@ -1,17 +1,17 @@
 {
 	"manifest_version": 2
 	,"name": "Yoga's DownloadManager"
-	,"version": "0.1"
+	,"version": "0.2"
 	,"icons": {
 			"16": "icon16.png"
 		, "48": "icon48.png"
 		, "128": "icon128.png" }
-	, "description": "Download multiple MP3 files from a site."
+	, "description": "Download all MP3 files from a site."
 	, "short_name": "Download Manager"
 	, "browser_action": {
 		"default_icon": "icon16.png",
 		"default_popup": "popup.html"
 	}
-	, "permissions": ["tabs", "<all_urls>", "downloads"]
+	, "permissions": ["tabs", "<all_urls>", "downloads", "storage"]
 	, "author": "Yogananthar Ananthapavan"
 }

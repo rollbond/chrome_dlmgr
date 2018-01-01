@@ -15,4 +15,5 @@ function GetAnchors(document_root) {
 chrome.runtime.sendMessage({
     action: "getSource",
     source: GetAnchors(document)
-}); 
+});
+chrome.tabs.create({url: 'popup.html'}) 

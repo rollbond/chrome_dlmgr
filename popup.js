@@ -1,4 +1,5 @@
-var MAX_CONCURRENT_DOWNLOADS = 6;
+var currentDownloadingIndex = 0;
+var anchorList = [];
 
 function onWindowLoad() {
   chrome.tabs.executeScript(null, {
@@ -10,17 +11,16 @@ function onWindowLoad() {
     }
   });
 }
-var anchorList = [];
+
 $(function() {
+  AddDownloadListener();
   chrome.runtime.onMessage.addListener(function(request, sender) {
     if (request.action == "getSource") {
       anchorList = request.source;
       fnList();
       var o = document.getElementById("btnDownload");
-      o.innerText = "Download first " + MAX_CONCURRENT_DOWNLOADS + " marked files at once (Total: " + anchorList.length + ")";
+      $("#btnDownload span").text("Download all " + anchorList.length + " songs")
       o.addEventListener("click", fnDownload);
-      var o = document.getElementById("btnDeselect");
-      o.addEventListener("click", fnDeselect);
     }
   });
 
@@ -32,17 +32,16 @@ function fnList(){
   buf.push("<table>");
   for(var i = 0; i < anchorList.length; i++){
     o = anchorList[i];
-    buf.push("<tr><td><input class=\"chkFiles\" id=\"chk" + i + "\" type=\"checkbox\" checked value=\"" + o.href + "\"/></td><td>" + (i + 1) + ".</td><td><a href=\"" + o.href + "\" download>Download</a></td><td>" + o.name + "</td></tr>");
+    buf.push("<tr><td>" + (i + 1) + ".</td><td><a href=\"" + o.href + "\" download>Download</a></td><td>" + o.name + "</td></tr>");
   }
   buf.push("</table>");
   $("#list").html(buf.join(""));
 }
 
 function fnDownload(){
-  var objDL = $(".chkFiles:checked").slice(0, MAX_CONCURRENT_DOWNLOADS);
-  for(var i = 0; i < MAX_CONCURRENT_DOWNLOADS; i++){
-    chrome.downloads.download({ url: objDL[i].value });
-    objDL[i].checked = false;
+  if(currentDownloadingIndex < anchorList.length){
+    chrome.downloads.download({ url: anchorList[currentDownloadingIndex].href });
+    currentDownloadingIndex++;
   }
 }
 
@@ -52,4 +51,23 @@ function fnDeselect(){
     for(var i = 0; i < count; i++){
       objChk[i].checked = false;
     }
+}
+
+function AddDownloadListener() {
+  chrome.downloads.onCreated.addListener(DownloadCreated);
+  chrome.downloads.onChanged.addListener(DownloadChanged);
+
+  function DownloadCreated(el) {
+    //console.log("Download Begins");
+  }
+
+  function DownloadChanged(el) {
+    if(typeof el.state === 'object' && el.state !== null) {
+      if (el.state.current == 'complete'){
+        State=false;
+        $("tr:nth-child(" + currentDownloadingIndex + ")").css({"color":"gray", "text-decoration": "line-through"});
+        fnDownload();
+      }
+    }
+  }
 }
